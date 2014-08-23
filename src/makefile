@@ -100,7 +100,7 @@ FORMAT := $(strip $(FORMAT))
 # -----------------------------------------------------------------------------
 # -----------------------------------------------------------------------------
 
-.PHONY: all clean
+.PHONY: all clean install
 
 all: $(TARGET).hex $(TARGET).eep
 	@echo
@@ -121,7 +121,13 @@ clean:
 	@echo
 	@echo --- cleaning ---
 	git clean -dX -f # remove ignored files and directories
-
+install:
+	@echo -e '\n------- Installing firmware to Teensy  -------\n'
+	@echo -e '  Plug in your Ergodox keyboard and press '
+	@echo -e '  the reset button on the teensy board.'
+	@echo -e '\n----------------------------------------------\n'
+	$(TEENSY_LOADER) -mmcu=$(MCU) -w $(TARGET).eep & \
+	$(TEENSY_LOADER) -mmcu=$(MCU) -w $(TARGET).hex
 # -----------------------------------------------------------------------------
 
 .SECONDARY:
