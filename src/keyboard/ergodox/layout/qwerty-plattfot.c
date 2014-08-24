@@ -11,6 +11,8 @@
 #include "../../../lib/data-types/misc.h"
 #include "../../../lib/usb/usage-page/keyboard--short-names.h"
 #include "../../../lib/key-functions/public.h"
+#include "../../../lib/key-functions/private.h"
+#include "../../../lib-other/pjrc/usb_keyboard/usb_keyboard.h"
 #include "../matrix.h"
 #include "../layout.h"
 // FUNCTIONS ------------------------------------------------------------------
@@ -25,6 +27,42 @@ void kbfun_layer_pop_all(void) {
   kbfun_layer_pop_8();
   kbfun_layer_pop_9();
   kbfun_layer_pop_10();
+}
+
+/// Macro for inserting (), [] or {} and move the cursor (left arrow key
+/// press) to the middle of the markers. 
+void local_kbfun_insert_tall_punctuation_pair( uint8_t left_mark, uint8_t right_mark, bool shift ) {
+
+  if( shift ) _kbfun_press_release(true, KEY_LeftShift );
+  
+  // Insert left mark
+  _kbfun_press_release(true,  left_mark);
+  usb_keyboard_send();
+  _kbfun_press_release(false, left_mark);
+  
+  // Insert right mark
+  _kbfun_press_release(true,  right_mark);
+  usb_keyboard_send();
+  _kbfun_press_release(false, right_mark);
+
+  if( shift ) _kbfun_press_release(false, KEY_LeftShift );
+
+  // Move curser one step to the left
+  _kbfun_press_release(true,  KEY_LeftArrow);
+  usb_keyboard_send();
+  _kbfun_press_release(false, KEY_LeftArrow);
+}
+
+void local_kbfun_insert_brackets( void ){
+  local_kbfun_insert_tall_punctuation_pair(KEY_LeftBracket_LeftBrace, KEY_RightBracket_RightBrace, false );
+}
+
+void local_kbfun_insert_braces( void ){
+  local_kbfun_insert_tall_punctuation_pair(KEY_LeftBracket_LeftBrace, KEY_RightBracket_RightBrace, true );
+}
+
+void local_kbfun_insert_parentheses( void ){
+  local_kbfun_insert_tall_punctuation_pair(KEY_9_LeftParenthesis, KEY_0_RightParenthesis, true );
 }
 
 // DEFINITIONS ----------------------------------------------------------------
@@ -59,6 +97,13 @@ void kbfun_layer_pop_all(void) {
 #define  slpunum  &kbfun_layer_push_numpad
 #define  slponum  &kbfun_layer_pop_numpad
 // ----------------------------------------------------------------------------
+#define KEY_MACRO 0 // Just to show that the key in the matrix is
+                    // asigned to a macro, will not actually produce
+                    // any keycode.
+// Macro -> kins = keyboard insert. Note only on keyboard press.
+#define kinsbr &local_kbfun_insert_brackets
+#define kinscu &local_kbfun_insert_braces // Also known as curly brackets hence cu.
+#define kinspa &local_kbfun_insert_parentheses
 
 /*nk == no key*/
 // LAYOUT ---------------------------------------------------------------------
@@ -145,7 +190,7 @@ KB_MATRIX_LAYER(
 	0,	
 	// Left hand
 	0,	0,			0,			0,			0,			0,	0,	
-	0,	0,			0,			0,			0,			0,	0,	
+	0,	0,			KEY_MACRO,		KEY_MACRO,		KEY_MACRO,		0,	0,	
 	0,	KEY_9_LeftParenthesis,	KEY_0_RightParenthesis,	KEY_Backslash_Pipe,	KEY_Dash_Underscore,	0,	
 	0,	0,			0,			0,			0,			0,	0,	
 	0,	0,			0,			0,			0,	
@@ -382,7 +427,7 @@ KB_MATRIX_LAYER(
 	NULL,	
 	// left hand
 	NULL,	NULL,	 NULL,	  NULL,	  NULL,	  NULL,	NULL,	
-	NULL,	NULL,	 NULL,	  NULL,	  NULL,	  NULL,	NULL,	
+	NULL,	NULL,	 kinsbr,  kinspa, kinscu, NULL,	NULL,	
 	ktrans,	sshprre, sshprre, kprrel, kprrel, NULL,	
 	ktrans,	NULL,	 NULL,	  NULL,	  NULL,	  NULL,	NULL,	
 	ktrans,	NULL,	 NULL,	  ktrans, ktrans,	
